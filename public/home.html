@@ -39,11 +39,17 @@
 </head>
 <body>
     <div id="container">
-        <h1>Welcome to Chat</h1>
+        <h1>Welcome to Socketlist</h1>
         
-        <!-- Input field to enter room code -->
+        <!-- Input field to enter room code with oninput event to enforce 5 character limit -->
         <div>
-            <input type="number" id="roomCode" autocomplete="off" placeholder="Enter 5 digit code" maxlength="5" />
+            <input 
+                type="number" 
+                id="roomCode" 
+                autocomplete="off" 
+                placeholder="Enter 5 digit code" 
+                maxlength="5" 
+                oninput="limitInputLength(this)" />
         </div>
 
         <div class="space">
@@ -58,7 +64,6 @@
     </div>
 
     <script>
-        
         function createRoom() {
             // Generate a random 5-digit room ID
             const randomId = Math.floor(Math.random() * 100000); // Random number between 0 and 99999
@@ -72,10 +77,17 @@
             const roomCode = document.getElementById("roomCode").value;
 
             // Check if the room code is valid (exactly 5 digits)
-            if (roomCode && /^[0-9]{5}$/.test(roomCode)) {
+            if (roomCode && /^[0-9]{5}$/.test(roomCode) && roomCode.length === 5) {
                 window.location.href = '/' + roomCode;
             } else {
-                alert("Please enter a valid room code (5 digits only).");
+                alert("Please enter a valid room code (exactly 5 digits).");
+            }
+        }
+
+        // Function to limit the input length to 5 digits
+        function limitInputLength(input) {
+            if (input.value.length > 5) {
+                input.value = input.value.slice(0, 5); // Truncate to 5 characters
             }
         }
     </script>
