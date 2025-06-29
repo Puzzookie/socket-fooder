@@ -43,7 +43,7 @@
         
         <!-- Input field to enter room code -->
         <div>
-            <input type="text" id="roomCode" autocomplete="off" placeholder="Enter 5 digit code" oninput="validateInput()" maxlength="5" />
+            <input type="number" id="roomCode" autocomplete="off" placeholder="Enter 5 digit code" maxlength="5" />
         </div>
 
         <div class="space">
@@ -58,13 +58,7 @@
     </div>
 
     <script>
-        // Function to ensure the input is numbers only
-        function validateInput() {
-            const inputField = document.getElementById("roomCode");
-            // Remove any non-numeric characters
-            inputField.value = inputField.value.replace(/[^0-9]/g, '');
-        }
-
+        
         function createRoom() {
             // Generate a random 5-digit room ID
             const randomId = Math.floor(Math.random() * 100000); // Random number between 0 and 99999
