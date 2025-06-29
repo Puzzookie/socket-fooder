@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Join Room</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        #container {
+            text-align: center;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        input {
+            padding: 10px;
+            font-size: 16px;
+            margin-top: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        .space {
+            margin-top: 20px; /* Adds space between the elements */
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>Welcome to Chat</h1>
+        
+        <!-- Input field to enter room code -->
+        <div>
+            <input type="text" id="roomCode" autocomplete="off" placeholder="Enter 5 digit code" oninput="validateInput()" maxlength="5" />
+        </div>
+
+        <div class="space">
+            <!-- Button to join room using entered code -->
+            <button onclick="joinRoom()">Join Room</button>
+        </div>
+        
+        <div class="space">
+            <!-- Button to create a random room -->
+            <button onclick="createRoom()">Create Random Room</button>
+        </div>
+    </div>
+
+    <script>
+        // Function to ensure the input is numbers only
+        function validateInput() {
+            const inputField = document.getElementById("roomCode");
+            // Remove any non-numeric characters
+            inputField.value = inputField.value.replace(/[^0-9]/g, '');
+        }
+
+        function createRoom() {
+            // Generate a random 5-digit room ID
+            const randomId = Math.floor(Math.random() * 100000); // Random number between 0 and 99999
+            // Ensure it's always 5 digits (e.g., 00456)
+            const formattedId = randomId.toString().padStart(5, '0');
+            window.location.href = '/' + formattedId;
+        }
+
+        function joinRoom() {
+            // Get the value entered in the input field
+            const roomCode = document.getElementById("roomCode").value;
+
+            // Check if the room code is valid (exactly 5 digits)
+            if (roomCode && /^[0-9]{5}$/.test(roomCode)) {
+                window.location.href = '/' + roomCode;
+            } else {
+                alert("Please enter a valid room code (5 digits only).");
+            }
+        }
+    </script>
+</body>
+</html>

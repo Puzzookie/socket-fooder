@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dual Room Chat with Delete</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font: 14px sans-serif;
+            background: #f4f4f4;
+        }
+
+        #chat-container {
+            display: flex;
+            flex-direction: row;
+            height: 100vh;
+        }
+
+        .chat-box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #ccc;
+            background: #fff;
+        }
+
+        .chat {
+            list-style-type: none;
+            flex-grow: 1;
+            overflow-y: auto;
+            margin: 0;
+            padding: 10px;
+            background: #fff;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .chat li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 4px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .chat .text {
+            flex-grow: 1;
+            margin-right: 8px;
+            word-break: break-word;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: red;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .form {
+            display: flex;
+            padding: 10px;
+            background: #ddd;
+            border-top: 1px solid #ccc;
+        }
+
+        .form p {
+            margin: 0;
+            padding: 10px;
+            font-size: 14px;
+            background: #ddd;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            border-radius: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #form1 {
+            display: hidden;
+        }
+        .input {
+            flex-grow: 1;
+            padding: 10px;
+            border-radius: 4px;
+            border: none;
+            font-size: 14px;
+        }
+
+        .send, .done {
+            padding: 10px 20px;
+            background: #007BFF;
+            border: none;
+            color: white;
+            border-radius: 4px;
+            margin-left: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            #chat-container {
+                flex-direction: column;
+            }
+
+            .chat-box {
+                height: 50%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <!-- Chat 1 -->
+        <div class="chat-box" id="chat-box">
+            <ul class="chat" id="chat1"></ul>
+            <form class="form" id="form1">
+                <input class="input" id="input1" autocomplete="off" placeholder="Enter a message..." />
+                <button class="send">Send</button>
+            </form>
+        </div>
+
+        <!-- Chat 2 -->
+        <div class="chat-box" id="chat-box2">
+            <ul class="chat" id="chat2"></ul>
+            <form class="form" id="form2">
+                <p id="p-message">Any message that begins with '+' will be added to the list</p>
+                <button class="done" id="done">Hide</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const roomId = window.location.pathname.split("/")[1];
+        socket.emit('join room', roomId);
+
+        const chat1 = document.getElementById('chat1');
+        const chat2 = document.getElementById('chat2');
+        const input1 = document.getElementById('input1');
+        const form1 = document.getElementById('form1');
+        const form2 = document.getElementById('form2');
+
+        function createMessageElement(msg) {
+            const item = document.createElement('li');
+            item.dataset.id = msg.id;
+
+            const text = document.createElement('span');
+            text.className = 'text';
+            text.textContent = msg.text;
+
+            const delBtn = document.createElement('button');
+            delBtn.className = 'delete-btn';
+            delBtn.innerHTML = '&times;';
+            delBtn.onclick = () => {
+                socket.emit('delete message', { chat: msg.chat, id: msg.id });
+            };
+
+            item.appendChild(text);
+            item.appendChild(delBtn);
+            return item;
+        }
+
+        function appendMessageToChat(chatEl, msg) {
+            const item = createMessageElement(msg);
+            chatEl.appendChild(item);
+            chatEl.scrollTop = chatEl.scrollHeight;
+        }
+
+        form1.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const text = input1.value.trim();
+            if (text) {
+                socket.emit('chat message', { chat: 'chat1', text });
+                input1.value = '';
+            }
+        });
+
+        form2.addEventListener('submit', function(e) {
+            e.preventDefault();
+            e.preventDefault();
+            if(document.getElementById('chat-box').style.display === 'none')
+            {
+                document.getElementById("done").innerHTML = "Hide";
+                document.getElementById('chat-box').style.display = 'flex';
+                document.getElementById('p-message').innerHTML = "Any message that begins with '+' will be added to the list";
+
+            }
+            else
+            {
+                document.getElementById("done").innerHTML = "Show";
+                document.getElementById('chat-box').style.display = 'none';
+                document.getElementById('p-message').innerHTML = "Delete a message by clicking the 'x' button next to it";
+            }
+        });
+
+        socket.on('print', function(messages) {
+            chat1.innerHTML = '';
+            chat2.innerHTML = '';
+
+            messages.chat1.forEach(msg => {
+                msg.chat = 'chat1';
+                appendMessageToChat(chat1, msg);
+            });
+
+            messages.chat2.forEach(msg => {
+                msg.chat = 'chat2';
+                appendMessageToChat(chat2, msg);
+            });
+        });
+
+        socket.on('chat message', function(msg) {
+            if (msg.chat === 'chat1') {
+                appendMessageToChat(chat1, msg);
+            } else if (msg.chat === 'chat2') {
+                appendMessageToChat(chat2, msg);
+            }
+        });
+
+        socket.on('delete message', function({ chat, id }) {
+            const chatEl = chat === 'chat1' ? chat1 : chat2;
+            const item = chatEl.querySelector(`li[data-id="${id}"]`);
+            if (item) item.remove();
+        });
+    </script>
+</body>
+</html>
